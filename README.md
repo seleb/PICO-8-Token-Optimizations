@@ -1,7 +1,7 @@
 # PICO-8 Token Optimizations
 A few of these are pretty obvious, a few of them are not that obvious. Almost all of them make your code more unreadable, harder to edit, and would generally be considered "bad practice" in a less constrained system.
 
-Feel free to suggest changes, corrections, or other tricks!
+These are mostly the result of various people brainstorming optimizations on the PICO-8 discord server. Feel free to suggest changes, corrections, or other tricks!
 
 ## Negative Literals as Hexadecimals
 The negative sign counts as a token, so instead of writing negative numbers as you would normally (i.e. `-10`) you can write them using hexadecimal numbers which are larger than PICO-8 allows (i.e. `0xFFFFF6`). This causes an overflow resulting in the same number. As a quick shorthand, `0xFFFFFF` is `-1`, `0xFFFFFE` is `-2`, etc.
