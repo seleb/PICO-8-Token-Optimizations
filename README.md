@@ -75,8 +75,8 @@ function print_score(player)
  else print(score.." you won by a lot!") end
 end
 ```
-This is particularly useful if the access statement is more complex. `player.score` needs to be repeated 4 times before you break even, but `game.scene.player.score.current` only needs to be repeated once.
+This is particularly useful if the access statement is more complex. `player.score` needs to be repeated 4 times before you break even, but `game.scene.player[0].score.current` only needs to be repeated once.
 
 - Use when: you're accessing a table multiple times within a scope block
 - Caveats: The table might not even be necessary in the first place; make sure to check if it's just a mental model.
-- Saves: at least 1 token per table access, with an overhead of 4 tokens to create the local variable (and an additional 4 if you're modifying it and assigning it to the table at the end)
+- Saves: n-1 tokens per table access, with an overhead of n+2 tokens to create the local variable (and an additional n+2 if you're modifying it and assigning it to the table at the end), where n is the number of tokens needed to access the variable
