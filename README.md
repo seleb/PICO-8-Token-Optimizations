@@ -80,3 +80,19 @@ This is particularly useful if the access statement is more complex. `player.sco
 - Use when: you're accessing a table multiple times within a scope block
 - Caveats: The table might not even be necessary in the first place; make sure to check if it's just a mental model.
 - Saves: n-1 tokens per table access, with an overhead of n+2 tokens to create the local variable (and an additional n+2 if you're modifying it and assigning it to the table at the end), where n is the number of tokens needed to access the variable
+
+## Prefer Property Access to Array Indexing
+Accessing tables through array indexing (e.g. `table["key"]`) is a 3-token statement, whereas accessing a property (e.g. `table.key`) is a 2-token statement.
+
+- Use when: accessing table properties with string literals
+- Caveats: `table[key]` allows for a variable `key`, whereas property access is static.
+- Saves: 1 token per access
+
+## Vector Dimensions as Properties Instead of Array Elements
+A common, but more complex example of the above point is the way you might handle PICO-8 vectors: you could create a table in the format `point={x,y}`, and then access the x and y values using `point[1]` and `point[2]`, or you could create a table in the format `point={x=x,y=y}` and access them using `point.x` and `point.y`. The former costs more tokens to access (3 vs. 2), but the latter costs more tokens to create (9 vs 5). You can reduce the creation cost by including a constructor function, e.g. `function vec(x,y) return {x=x,y=y} end`. This function has an overhead, but reduces the token cost of creating vectors to `vec(x,y)`, a 4-token statement. Table access is typically more common than table creation, so even without the constructor function the latter format will usually save tokens. 
+
+- Use when: you need vectors
+- Caveats: If you need to loop through the properties for whatever reason, your loop structure may have to change (e.g. you might need to replace `for i in all(point)` with `for k,v in pairs(point)`.
+- Saves: 1 token per access. Without constructor function, costs 4 tokens per creation. With constructor function, saves additional 1 token per creation, with an overhead of 13 tokens.
+
+*Note that vectors is simply a common example of this optimization; it can be applied to other objects as well*
