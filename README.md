@@ -133,3 +133,39 @@ A common, but more complex example of the above point is the way you might handl
 - Saves: 1 token per access. Without constructor function, costs 4 tokens per creation. With constructor function, saves additional 1 token per creation, with an overhead of 13 tokens.
 
 *Note that vectors is simply a common example of this optimization; it can be applied to other objects as well*
+
+## Parsing Data from String Literals
+If you're working on a larger project, you might run into a situation where you've hit the token limit because you're trying to store large amounts of data. This could be enemy coordinates, lines of NPC dialogue, level configurations, item properties, etc.; whatever it is, chances are it's being stored in a big table somewhere in your project, taking up a bunch of tokens. Instead of storing data in tables, you can often save tokens by storing it in strings and parsing it into tables at runtime.
+
+One of the added benefits of this method is that, depending on your data, you might actually be able to reduce your character count by moving the string data into unused portions of the cartridge memory (e.g. empty map space, empty sfx, etc.) and extract it at runtime.
+
+The implementation of this can, of course, vary quite a bit from project to project. The following is a simple example of how one might convert a table of single-digit numbers into a string parsed at runtime: 
+```lua
+data={0,1,2,3,4,5,6,7,8,9,4,6,7,2,8,8,2,8,9,1,6,5,3,3,6,8,9,3,3,6,7,9,0,3,1,2,2,3,5,7,8,9,0}
+
+for i in all(data) do
+ print(i)
+end
+```
+```lua
+data_string="0,1,2,3,4,5,6,7,8,9,4,6,7,2,8,8,2,8,9,1,6,5,3,3,6,8,9,3,3,6,7,9,0,3,1,2,2,3,5,7,8,9,0"
+data={}
+while #data_string > 0 do
+ local d=sub(data_string,1,1)
+ if d!="," then
+  add(data,d)
+ end
+ data_string=sub(data_string,2)
+end
+
+for i in all(data) do
+ print(i)
+end
+```
+Both programs produce the same result, but the first is 56 tokens and the second is only 44. Notably, each additional element in the first program's `data` table requires an additional token, but the second program stays the at same token count for an arbitrary length `data_string`.
+
+*Note that this example is just for demonstration purposes, and not meant to show an optimal method for either storing or parsing data.*
+
+- Use when: you're dealing with large amounts of similar data stored in tables
+- Caveats: Remember that PICO-8's other limits (character, compressed, RAM) can be just as restrictive as the token limit; this technique is useful but it doesn't give you infinite storage. Also, strings aren't limited in length, but accessing data in a string with more characters than PICO-8 numbers can represent may require a bit of extra work (e.g. the `#` operator will overflow).
+- Saves: depends; usually a whole lot of tokens, but with a fairly large overhead
