@@ -9,6 +9,43 @@ The negative sign counts as a token, so instead of writing negative numbers as y
 - Caveats: Using hexadecimal numbers takes up more characters. Doesn't work with addition/subtraction because adding negative numbers can be replaced with a subtraction, and subtraction needs the `-` operator.
 - Saves: 1 token per number
 
+## Rely on Default Arguments
+Functions can be called without passing every argument. Any specified arguments which aren't passed in are assigned a value of `nil` instead. Because of this, many of the PICO-8 API functions have arguments which can often be omitted without changing program behaviour. Some common examples include:
+- `btn`/`btnp`: The second argument is an optional player ID (rarely needed for single-player games).
+- `sfx`: The second argument is an optional channel, and the third argument is an optional offset.
+- `music`: The second argument is an optional fade-length, and the third argument is an optional channel mask. If you want to play music from the beginning of the tracker, you can even call `music` without any arguments.
+
+You can also take advantage of this behaviour in user-defined functions. e.g. say you have a function `foo` which is often (but not always) called with the argument `5`. If you change the function such that a `nil` argument is replaced with `5`, you can remove the argument in all the places you would pass `5` in. The following 22-token program
+```lua
+function foo(argument)
+ --do a thing
+end
+foo(5)
+foo(5)
+foo(5)
+foo(5)
+foo(5)
+foo(5)
+```
+becomes
+```lua
+function foo(argument)
+ argument=argument or 5
+ --do a thing
+end
+foo()
+foo()
+foo()
+foo()
+foo()
+foo()
+```
+a 21-token program.
+
+- Use when: you're passing arguments which don't change the behaviour of a function.
+- Caveats: Arguments must be specified in order, so try to order your arguments such that they are specified in decreasing order of likelihood to be passed in. If the function only has one argument, the point below about calling functions with strings can probably save the same number of tokens without any overhead.
+- Saves: 1 token per argument omitted, with an overhead of up to 5 tokens if you have to replace the `nil` argument with your own default value
+
 ## Calling Functions with Strings
 Instead of calling functions with brackets (i.e. `FUNC()`) you can call them using strings (i.e. `FUNC""`). On its own, this doesn't save any tokens, but the string used to call the function will be passed in as the first argument at no extra token cost. This means that `FUNC("STRING")`, a 3-token statement, is the same as `FUNC"STRING"`, a 2-token statement.
 
