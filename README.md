@@ -4,7 +4,7 @@ A few of these are pretty obvious, a few of them are not that obvious. Almost al
 These are mostly the result of various people brainstorming optimizations on the PICO-8 discord server. Feel free to suggest changes, corrections, or other tricks!
 
 ## Negative Literals as Hexadecimals
-The negative sign counts as a token, so instead of writing negative numbers as you would normally (i.e. `-10`) you can write them using hexadecimal numbers which are larger than PICO-8 allows (i.e. `0xFFFFF6`). This causes an overflow resulting in the same number. As a quick shorthand, `0xFFFFFF` is `-1`, `0xFFFFFE` is `-2`, etc.
+The negative sign counts as a token, so instead of writing negative numbers as you would normally (e.g. `-10`) you can write them using large hexadecimal numbers (e.g. `0xFFF6`). This results in the same number. As a quick shorthand, `0xFFFF` is `-1`, `0xFFFE` is `-2`, etc.
 - Use when: assigning, multiplying, or dividing negative literals.
 - Caveats: Using hexadecimal numbers takes up more characters. Doesn't work with addition/subtraction because adding negative numbers can be replaced with a subtraction, and subtraction needs the `-` operator.
 - Saves: 1 token per number
