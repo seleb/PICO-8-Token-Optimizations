@@ -114,6 +114,8 @@ end
 ```
 This is particularly useful if the access statement is more complex. `player.score` needs to be repeated 4 times before you break even, but `game.scene.player[0].score.current` only needs to be repeated once.
 
+This method has a bonus of being less CPU-intensive: locals can be read faster than table accesses.
+
 - Use when: you're accessing a table multiple times within a scope block
 - Caveats: The table might not even be necessary in the first place; make sure to check if it's just a mental model.
 - Saves: n-1 tokens per table access, with an overhead of n+2 tokens to create the local variable (and an additional n+2 if you're modifying it and assigning it to the table at the end), where n is the number of tokens needed to access the variable
