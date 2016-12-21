@@ -120,6 +120,28 @@ This method has a bonus of being less CPU-intensive: locals can be read faster t
 - Caveats: The table might not even be necessary in the first place; make sure to check if it's just a mental model.
 - Saves: n-1 tokens per table access, with an overhead of n+2 tokens to create the local variable (and an additional n+2 if you're modifying it and assigning it to the table at the end), where n is the number of tokens needed to access the variable
 
+## Initialize Table Properties in Declaration
+Tables are commonly initialized using `t={}`, and then followed by table property declarations (e.g. `t.x=0`). This is probably a result of a mental model which goes "Create my table, now set my table's X position to 0". You just wanted a table with an X position of 0 though, and didn't really need to separate it into two steps.
+e.g. the following table + property declaration:
+```lua
+t = {}
+t.one = 1
+t.two = 2
+t.three = 3
+```
+can be rewritten with 3 less tokens as:
+```lua
+t = {
+  one = 1,
+  two = 2,
+  three = 3
+}
+```
+
+- Use when: you're declaring tables and their properties at the same time
+- Caveats: Similar to the comma assignment point above, you won't be able to reference values which are being assigned simulataneously. e.g. `t = {}; t.a = 1; t.b = t.a` will result in `t.b == 1`, but `t = {a = 1, b = a}` will result in `t.b == nil`.
+- Saves: 1 token per property declared
+
 ## Prefer Property Access to Array Indexing
 Accessing tables through array indexing (e.g. `table["key"]`) is a 3-token statement, whereas accessing a property (e.g. `table.key`) is a 2-token statement.
 
