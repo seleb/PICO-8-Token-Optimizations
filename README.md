@@ -102,7 +102,7 @@ function print_score(player)
  else print(player.score.." you won by a lot!") end
 end
 ```
-can be rewritten with 3 less tokens as:
+can be rewritten with 3 fewer tokens as:
 ```lua
 function print_score(player)
  local score=player.score
@@ -129,7 +129,7 @@ t.one = 1
 t.two = 2
 t.three = 3
 ```
-can be rewritten with 3 less tokens as:
+can be rewritten with 3 fewer tokens as:
 ```lua
 t = {
   one = 1,
