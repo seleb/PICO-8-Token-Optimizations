@@ -5,8 +5,9 @@ These are mostly the result of various people brainstorming optimizations on the
 
 ## Negative Literals as Hexadecimals
 The negative sign counts as a token, so instead of writing negative numbers as you would normally (e.g. `-10`) you can write them using large hexadecimal numbers (e.g. `0xFFF6`). This results in the same number. As a quick shorthand, `0xFFFF` is `-1`, `0xFFFE` is `-2`, etc.
+
 - Use when: assigning, multiplying, or dividing negative literals.
-- Caveats: Using hexadecimal numbers takes up more characters. Doesn't work with addition/subtraction because adding negative numbers can be replaced with a subtraction, and subtraction needs the `-` operator.
+- Caveats: Using hexadecimal numbers takes up more characters. Doesn't help with addition/subtraction because adding negative numbers can be replaced with a subtraction, and subtraction needs the `-` operator.
 - Saves: 1 token per number
 
 ## Rely on Default Arguments
@@ -46,8 +47,8 @@ a 21-token program.
 - Caveats: Arguments must be specified in order, so try to order your arguments such that they are specified in decreasing order of likelihood to be passed in. If the function only has one argument, the point below about calling functions with strings can probably save the same number of tokens without any overhead.
 - Saves: 1 token per argument omitted, with an overhead of up to 5 tokens if you have to replace the `nil` argument with your own default value
 
-## Calling Functions with Strings
-Instead of calling functions with brackets (i.e. `FUNC()`) you can call them using strings (i.e. `FUNC""`). On its own, this doesn't save any tokens, but the string used to call the function will be passed in as the first argument at no extra token cost. This means that `FUNC("STRING")`, a 3-token statement, is the same as `FUNC"STRING"`, a 2-token statement.
+## Calling Functions with Strings or Tables
+Instead of calling functions with brackets (i.e. `FUNC()`) you can call them using strings (i.e. `FUNC""`) or tables (i.e. `FUNC{}`). On its own, this doesn't save any tokens, but the string or table used to call the function will be passed in as the first argument at no extra token cost. This means that `FUNC("STRING")` or `FUNC({TABLE})`, 3-token statements, are the same as `FUNC"STRING"` or `FUNC{TABLE}`, 2-token statements.
 
 In most cases, this format will also work for a single number contained in a string, e.g. `BTN(0)` can safely be replaced with `BTN"0"`. It's important to note that the argument is still passed in as a string, so some user-defined functions may not work as expected in this format, e.g.
 ```lua
@@ -67,12 +68,20 @@ print(BAR"0") -- true
 
 ## Assignment with Commas
 Multiple variables can be declared at the same time in the format `var1,var2 = value1,value2`. These declarations can be chained indefinitely, removing the need for an `=` per variable assigned.
+
 - Use when: assigning multiple variables at the same time.
 - Caveats: If you reference one of the variables being assigned within the comma-separated list, it will evaluate to its value **before** assignment, regardless of order. e.g. the statements `x,y=1,2; x,y=3,x` will result in `x` having a value of `3`, and `y` having the value of `1`. You can mix-and-match different variable types here, but you can't mix-and-match `local` and global variables.
 - Saves: 1 token per variable
 
+## Assignments Default to Nil
+When declaring multiple variables at the same time, any not given values will be set to nil. This is an easy way to unset existing variables. `var1,var2 = value1,nil` is equivalent to `var1,var2 = value1`.
+
+- Use when: assigning multiple variables at the same time, some of which are being set to nil
+- Saves: 1 token per variable
+
 ## Replace Constant Variables with Literals
 When you're coding, it's almost always better to store constants as variables; e.g. if your game has gravity, you might write `g=9.8` and reference `g` instead of writing `9.8` everywhere gravity needs to be applied. It's helpful while you're coding, but doesn't actually contribute to the final program, so once you've decided on a constant, you can replace all those variable references with the literal.
+
 - Use when: you're prepared for commitment.
 - Caveats: It's really annoying to change a constant manually after taking out the variable, so try to leave this one to the end if you can.
 - Saves: 3 tokens per variable
@@ -81,12 +90,14 @@ When you're coding, it's almost always better to store constants as variables; e
 Similar to storing constants in variables, it's often easier to represent constant values in code using multiple literals, e.g. `1/3` and `1/21` are probably more user-friendly than `0.333...` and `0.0476...`. By replacing these with values calculated outside of the editor, you can save some tokens.
 
 It's also helpful to remember to use algebra to simplify statements, e.g. `2*(variable/10)` might make sense when you first write it, but it's the same as `variable/5`.
+
 - Use when: you're relying on the editor to do the math for you.
 - Caveats: Again, it's harder to edit once you've made the change so leave it to the end if you can.
 - Saves: depends
 
 ## Replace Table Elements with Separate Variables
 It's typical to use tables to store the properties of an object which "belong" to that table; e.g. you might have a table `player` which has a table `player.position` which has the elements `player.position.x` and `player.position.y`. In some cases, this is just an organizational habit and you could just have `player_position_x` and `player_position_y` as completely unrelated variables and avoid the tokens needed for table access.
+
 - Use when: you're treating a table as a mental model instead of a table.
 - Caveats: This typically isn't useful if you're using OOP stuff; e.g. if your player and your enemies are all tables that have `position` and are handled in one loop, you probably won't save on tokens by taking one of them out of the system.
 - Saves: 1 token per table access
@@ -193,3 +204,17 @@ Both programs produce the same result, but the first is 56 tokens and the second
 - Use when: you're dealing with large amounts of similar data stored in tables
 - Caveats: Remember that PICO-8's other limits (character, compressed, RAM) can be just as restrictive as the token limit; this technique is useful but it doesn't give you infinite storage. Also, strings aren't limited in length, but accessing data in a string with more characters than PICO-8 numbers can represent may require a bit of extra work (e.g. the `#` operator will overflow).
 - Saves: depends; usually a whole lot of tokens, but with a fairly large overhead
+
+## Use Logical Short Circuiting
+Lua logical operators (`and` and `or`) stop evaluating and resolve when they don't need to go any farther to fulfil the logical condition. `foo() or bar()` will never run `bar()` if `foo()` returns a truthy value, and the whole expression will resolve to the return value of `foo()` if it's truthy or the return value of `bar` otherwise, and the opposite goes for `and`. `thing=foo() or bar()` serves to replace `thing=foo() if(not thing) thing=bar()`
+
+- Use when: you need to run multiple functions until one returns a good value
+- Caveats: logical operators can be tricky to follow when used this way, and 0 being truthy can cause problems
+- Saves: about six tokens per instance
+
+## Use Logical Short Circuiting for Arithmetic
+The trick above can also be used as part of an arithmetic expression, and is handy when you are using a condition to choose between two different arithmetic operations to perform.
+`if foo() then a = b + c else a = b + d end` can be replaced with `a = foo() and b+c or b+d`
+
+- Use when: a condition leads to one of two arithmetic operations
+- Saves: about three tokens per instance
