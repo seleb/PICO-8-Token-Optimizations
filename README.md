@@ -3,13 +3,6 @@ A few of these are pretty obvious, a few of them are not that obvious. Almost al
 
 These are mostly the result of various people brainstorming optimizations on the PICO-8 discord server. Feel free to suggest changes, corrections, or other tricks!
 
-## Negative Literals as Hexadecimals
-The negative sign counts as a token, so instead of writing negative numbers as you would normally (e.g. `-10`) you can write them using large hexadecimal numbers (e.g. `0xFFF6`). This results in the same number. As a quick shorthand, `0xFFFF` is `-1`, `0xFFFE` is `-2`, etc.
-
-- Use when: assigning, multiplying, or dividing negative literals.
-- Caveats: Using hexadecimal numbers takes up more characters. Doesn't help with addition/subtraction because adding negative numbers can be replaced with a subtraction, and subtraction needs the `-` operator.
-- Saves: 1 token per number
-
 ## Rely on Default Arguments
 Functions can be called without passing every argument. Any specified arguments which aren't passed in are assigned a value of `nil` instead. Because of this, many of the PICO-8 API functions have arguments which can often be omitted without changing program behaviour. Some common examples include:
 - `btn`/`btnp`: The second argument is an optional player ID (rarely needed for single-player games).
@@ -184,20 +177,13 @@ end
 ```
 ```lua
 data_string="0,1,2,3,4,5,6,7,8,9,4,6,7,2,8,8,2,8,9,1,6,5,3,3,6,8,9,3,3,6,7,9,0,3,1,2,2,3,5,7,8,9,0"
-data={}
-while #data_string > 0 do
- local d=sub(data_string,1,1)
- if d!="," then
-  add(data,d)
- end
- data_string=sub(data_string,2)
-end
-
+data=split(data_string)
 for i in all(data) do
  print(i)
 end
 ```
-Both programs produce the same result, but the first is 56 tokens and the second is only 44. Notably, each additional element in the first program's `data` table requires an additional token, but the second program stays the at same token count for an arbitrary length `data_string`.
+
+Both programs produce the same result, but the first is 56 tokens and the second is only 18. Notably, each additional element in the first program's `data` table requires an additional token, but the second program stays the at same token count for an arbitrary length `data_string`.
 
 *Note that this example is just for demonstration purposes, and not meant to show an optimal method for either storing or parsing data.*
 
@@ -218,3 +204,43 @@ The trick above can also be used as part of an arithmetic expression, and is han
 
 - Use when: a condition leads to one of two arithmetic operations
 - Saves: about three tokens per instance
+
+# Outdated tricks
+
+## Negative Literals as Hexadecimals - Pico8 < v0.2.0
+This trick is no longer needed since v0.2.0 but if using an older version of pico8 may still apply
+
+The negative sign counts as a token, so instead of writing negative numbers as you would normally (e.g. `-10`) you can write them using large hexadecimal numbers (e.g. `0xFFF6`). This results in the same number. As a quick shorthand, `0xFFFF` is `-1`, `0xFFFE` is `-2`, etc.
+
+- Use when: assigning, multiplying, or dividing negative literals.
+- Caveats: Using hexadecimal numbers takes up more characters. Doesn't help with addition/subtraction because adding negative numbers can be replaced with a subtraction, and subtraction needs the `-` operator.
+- Saves: 1 token per number
+
+## Manually tokenizing a string - Pico8 < v0.2.1b
+Most of these steps are not required since the introduction of `split()` in verion v0.2.1b
+
+```lua
+data={0,1,2,3,4,5,6,7,8,9,4,6,7,2,8,8,2,8,9,1,6,5,3,3,6,8,9,3,3,6,7,9,0,3,1,2,2,3,5,7,8,9,0}
+
+for i in all(data) do
+ print(i)
+end
+```
+```lua
+data_string="0,1,2,3,4,5,6,7,8,9,4,6,7,2,8,8,2,8,9,1,6,5,3,3,6,8,9,3,3,6,7,9,0,3,1,2,2,3,5,7,8,9,0"
+data={}
+while #data_string > 0 do
+ local d=sub(data_string,1,1)
+ if d!="," then
+  add(data,d)
+ end
+ data_string=sub(data_string,2)
+end
+
+for i in all(data) do
+ print(i)
+end
+```
+Both programs produce the same result, but the first is 56 tokens and the second is only 44. Notably, each additional element in the first program's `data` table requires an additional token, but the second program stays the at same token count for an arbitrary length `data_string`.
+
+*Note that this example is just for demonstration purposes, and not meant to show an optimal method for either storing or parsing data.*
